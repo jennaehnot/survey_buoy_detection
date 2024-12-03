@@ -1,0 +1,42 @@
+<launch>
+  <arg name="model" default="/home/field/project11/catkin_ws/src/survey_buoy_detection/detect_buoys/config/best.onnx"/>
+  <arg name="threshold" default="0.3"/>
+  <arg name="video_source" default="rtsp://root:Crabpots_$1@192.168.3.22/axis-media/media.amp"/>
+  <arg name="buffer_queue_size" default="1"/>
+  <arg name="fps" default="10"/>
+  <arg name="x_margin" default="200"/>
+  <arg name="delay" default="10"/>
+  <arg name="camera_info_url" default="file:///$(find detect_buoys)/config/camera_cal1920x1080.yaml"/>
+  <arg name="record_buffer_duration" default="120"/>
+
+  <node pkg="video_stream_opencv" type="video_stream" name="video_stream">
+    <param name="video_stream_provider" value="$(arg video_source)"/>
+    <param name="buffer_queue_size" value="$(arg buffer_queue_size)"/>
+    <param name="fps" value="$(arg fps)"/>
+  </node>
+
+  <node pkg="opencv_dnn" type="opencv_dnn_node" name="yolo">
+    <param name="model" value="$(arg model)"/>
+    <param name="threshold" value="$(arg threshold)"/>
+    <remap from="image" to="image_raw"/>
+  </node>
+
+  <node pkg="sound_play" type="soundplay_node.py" name="soundplay_node">
+  </node>
+
+  <node pkg="beeper" type="beeper_node.py" name="beeper_node">
+    <param name="x_margin" value="$(arg x_margin)"/>
+    <param name="delay" value="$(arg delay)"/>
+  </node>
+
+  <node pkg="rosbag_snapshot" type="snapshot" name="snapshot" args="--duration=$(arg record_buffer_duration)
+      /image_raw
+      /posmv/orientation
+      /posmv/position
+      /posmv/time_reference
+      /posmv/velocity
+      /robotsound
+      /yolo/detections
+      " />
+
+</launch>

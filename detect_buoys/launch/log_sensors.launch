@@ -1,0 +1,16 @@
+<launch>
+   <arg name="duration" default="2m"/>
+
+   <node pkg="rosbag" type="record" name="sensor_logger" args="-o /media/field/doop2T/ --repeat-latched --lz4 --split --duration=$(arg duration)
+       /detection_image
+       /image_raw
+       /posmv/orientation
+       /posmv/position
+       /posmv/time_reference
+       /posmv/velocity
+       /robotsound
+       /yolo/class_labels
+       /yolo/detections
+       " />
+
+</launch>
